@@ -207,6 +207,46 @@ app.patch("/issues/:id/status", auth, admin, async (req, res) => {
   }
 });
 
+// Get a single issue by ID.
+// This returns the issue and populates the creator's name and email.
+app.get("/issues/:id", async (req, res) => {
+  try {
+    // Read the issue ID from the URL parameter.
+    const issueId = req.params.id;
+
+    // Look for the issue in the database and populate createdBy details.
+    const issue = await Issue.findById(issueId).populate("createdBy", "name email");
+    if (!issue) {
+      return res.status(404).json({ message: "Issue not found" });
+    }
+
+    // Return the found issue.
+    return res.json(issue);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+});
+
+// Delete an issue by ID.
+// This route is protected by auth and admin middleware.
+app.delete("/issues/:id", auth, admin, async (req, res) => {
+  try {
+    // Read the issue ID from the URL parameter.
+    const issueId = req.params.id;
+
+    // Attempt to delete the issue.
+    const issue = await Issue.findByIdAndDelete(issueId);
+    if (!issue) {
+      return res.status(404).json({ message: "Issue not found" });
+    }
+
+    // Return a success message after deletion.
+    return res.json({ message: "Issue deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+});
+
 // Get all issues route.
 // This returns all issues sorted by votes in descending order.
 app.get("/issues", async (req, res) => {
