@@ -1,11 +1,47 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5001',
   headers: {
     'Content-Type': 'application/json',
   },
 })
+
+// Attach JWT from localStorage to each request if present
+api.interceptors.request.use(
+  (config) => {
+    try {
+      const token = localStorage.getItem('token')
+      if (token) {
+        config.headers = config.headers || {}
+        config.headers.Authorization = `Bearer ${token}`
+      }
+    } catch (e) {
+      // ignore localStorage errors in non-browser environments
+    }
+    return config
+  },
+  (error) => Promise.reject(error),
+)
+
+// Global response interceptor: if token invalid/expired, clear and redirect to login
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status
+    if (status === 401) {
+      try {
+        localStorage.removeItem('token')
+      } catch (e) {
+        // ignore
+      }
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login'
+      }
+    }
+    return Promise.reject(error)
+  },
+)
 
 export async function login(credentials) {
   const response = await api.post('/login', credentials)
@@ -13,7 +49,7 @@ export async function login(credentials) {
 }
 
 export async function register(data) {
-  const response = await api.post('/auth/register', data)
+  const response = await api.post('/register', data)
   return response.data
 }
 
@@ -27,7 +63,14 @@ export async function createIssue(issue) {
   return response.data
 }
 
-export async function voteIssue(issueId) {
-  const response = await api.post(`/issues/${issueId}/vote`)
+// Backend provides upvote via POST /issues/:id/upvote
+export async function upvoteIssue(issueId) {
+  const response = await api.post(`/issues/${issueId}/upvote`)
+  return response.data
+}
+
+// Update issue status: PATCH /issues/:id/status
+export async function patchIssueStatus(issueId, status) {
+  const response = await api.patch(`/issues/${issueId}/status`, { status })
   return response.data
 }
