@@ -5,6 +5,7 @@ import { createIssue } from '../services/api'
 export default function CreateIssue() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [category, setCategory] = useState('')
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
@@ -13,10 +14,11 @@ export default function CreateIssue() {
     setError('')
 
     try {
-      await createIssue({ title, description })
+      await createIssue({ title, description, category })
       navigate('/')
     } catch (error) {
-      setError('Unable to create the issue. Please try again.')
+      const serverMsg = error?.response?.data?.message
+      setError(serverMsg || 'Unable to create the issue. Please try again.')
     }
   }
 
@@ -41,6 +43,17 @@ export default function CreateIssue() {
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             rows="5"
+            required
+          />
+        </label>
+
+        <label>
+          Category
+          <input
+            type="text"
+            value={category}
+            onChange={(event) => setCategory(event.target.value)}
+            placeholder="e.g. Campus Facilities"
             required
           />
         </label>

@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import issueRoutes from "./routes/issueRoutes.js";
@@ -7,15 +8,19 @@ import issueRoutes from "./routes/issueRoutes.js";
 dotenv.config();
 
 const app = express();
+
+// Enable CORS for the Vite dev server or specific client origin
+app.use(
+  cors({
+    origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
+  }),
+);
+
 app.use(express.json());
 
 connectDB();
 
-// Mount route modules.
-app.use("/", authRoutes);
-app.use("/", issueRoutes);
-
-// Mount authentication routes and issue routes.
+// Mount route modules once.
 app.use("/", authRoutes);
 app.use("/", issueRoutes);
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getIssues, voteIssue } from '../services/api'
+import { getIssues, upvoteIssue } from '../services/api'
 import IssueCard from '../components/IssueCard'
 
 export default function Dashboard() {
@@ -25,7 +25,7 @@ export default function Dashboard() {
 
   const handleVote = async (issueId) => {
     try {
-      const updatedIssue = await voteIssue(issueId)
+      const updatedIssue = await upvoteIssue(issueId)
       setIssues((current) =>
         current.map((issue) => (issue.id === issueId || issue._id === issueId ? updatedIssue : issue)),
       )

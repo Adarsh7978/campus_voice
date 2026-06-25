@@ -16,6 +16,13 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    branch: {
+      type: String,
+      enum: ["CS", "CD", "IT", "AL", "EC", "EX", "ME", "CE", "CB", "AU"],
+      required: true,
+      uppercase: true,
+      trim: true,
+    },
     password: {
       type: String,
       required: true,
