@@ -1,6 +1,7 @@
 import express from "express";
 import auth from "../middleware/auth.js";
 import admin from "../middleware/admin.js";
+import upload from "../middleware/upload.js";
 import {
   createIssue,
   upvoteIssue,
@@ -13,7 +14,9 @@ import {
 const router = express.Router();
 
 // Issue routes for creating, voting, updating, reading, and deleting issues.
-router.post("/issues", auth, createIssue);
+// The "upload.single("image")" middleware processes the image file from the form
+// before passing control to the createIssue controller.
+router.post("/issues", auth, upload.single("image"), createIssue);
 router.post("/issues/:id/upvote", auth, upvoteIssue);
 router.patch("/issues/:id/status", auth, admin, updateIssueStatus);
 router.get("/issues", getAllIssues);

@@ -1,6 +1,33 @@
 import Issue from "../models/issue.js";
+import cloudinary from "../config/cloudinary.js";
+import stream from "stream";
+
+// Helper: upload a file buffer to Cloudinary and return the secure URL.
+// Uploads to a folder named "college-issues" for organisation.
+async function uploadToCloudinary(fileBuffer) {
+  return new Promise((resolve, reject) => {
+    // Create a readable stream from the buffer so we can pipe it to Cloudinary.
+    const bufferStream = new stream.PassThrough();
+    bufferStream.end(fileBuffer);
+
+    // Create an upload stream to Cloudinary.
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: "college-issues",         // Organise uploads in a dedicated folder.
+        resource_type: "image",           // Tell Cloudinary this is an image.
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result.secure_url);       // Return the HTTPS URL of the uploaded image.
+      }
+    );
+
+    bufferStream.pipe(uploadStream);
+  });
+}
 
 // Controller to create a new issue.
+// Accepts multipart/form-data with fields: title, description, category + optional file "image".
 export async function createIssue(req, res) {
   try {
     const { title, description, category } = req.body;
@@ -9,11 +36,18 @@ export async function createIssue(req, res) {
       return res.status(400).json({ message: "Title, description, and category are required" });
     }
 
+    // If a file was uploaded (via multer), upload it to Cloudinary and get the URL.
+    let imageUrl = null;
+    if (req.file) {
+      imageUrl = await uploadToCloudinary(req.file.buffer);
+    }
+
     const issue = await Issue.create({
       title,
       description,
       category,
       createdBy: req.user.id,
+      imageUrl, // Will be null if no image was provided.
     });
 
     return res.status(201).json(issue);
