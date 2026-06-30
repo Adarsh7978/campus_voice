@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 // Define the Issue schema for the college issue voting platform.
 // This schema stores the issue title, description, category, voting state,
-// the user who created it, and automatic timestamps.
+// the user who created it, an optional image URL, and automatic timestamps.
 const issueSchema = new mongoose.Schema(
   {
     title: {
@@ -40,6 +40,12 @@ const issueSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+    },
+    // Cloudinary URL of the uploaded image (optional).
+    // If the user does not upload an image, this will be null/undefined.
+    imageUrl: {
+      type: String,
+      default: null,
     },
   },
   {
