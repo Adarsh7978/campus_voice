@@ -59,6 +59,21 @@ export async function getIssues() {
 }
 
 export async function createIssue(issue) {
+  // If the issue object contains a File (image), send as FormData.
+  // This lets the browser automatically set the correct Content-Type (multipart/form-data).
+  if (issue.image instanceof File) {
+    const formData = new FormData()
+    formData.append('title', issue.title)
+    formData.append('description', issue.description)
+    formData.append('category', issue.category)
+    formData.append('image', issue.image)
+    const response = await api.post('/issues', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return response.data
+  }
+
+  // No image — use regular JSON (backward compatible).
   const response = await api.post('/issues', issue)
   return response.data
 }
