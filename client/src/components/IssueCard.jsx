@@ -22,6 +22,17 @@ export default function IssueCard({ issue, onVote }) {
         </span>
       </div>
 
+      {/* Show the uploaded image if one exists */}
+      {issue.imageUrl && (
+        <div className="mt-4 overflow-hidden rounded-2xl border border-white/10">
+          <img
+            src={issue.imageUrl}
+            alt={issue.title}
+            className="h-48 w-full object-cover"
+          />
+        </div>
+      )}
+
       <p className="mt-4 flex-1 text-sm leading-7 text-slate-300">{issue.description}</p>
 
       <div className="mt-6 flex items-center justify-between rounded-2xl border border-white/10 bg-slate-800/80 px-4 py-3">
