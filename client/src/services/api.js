@@ -53,9 +53,17 @@ export async function register(data) {
   return response.data
 }
 
-export async function getIssues() {
-  const response = await api.get('/issues')
-  return response.data
+export async function getIssues(params = {}) {
+  const response = await api.get('/issues', { params })
+  const payload = response.data
+
+  // The backend now returns an object with issues + metadata.
+  // Keep the frontend simple by returning the array of issues.
+  if (Array.isArray(payload)) {
+    return payload
+  }
+
+  return payload?.issues || []
 }
 
 export async function createIssue(issue) {

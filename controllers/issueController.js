@@ -141,14 +141,48 @@ export async function deleteIssue(req, res) {
   }
 }
 
-// Controller to fetch all issues.
+// Controller to fetch all issues with optional search and filter support.
+// The query values are kept simple so the API can grow into pagination later.
 export async function getAllIssues(req, res) {
   try {
-    const issues = await Issue.find()
-      .sort({ votes: -1 })
-      .populate("createdBy", "name email");
+    const search = req.query.search?.trim() || "";
+    const category = req.query.category?.trim() || "";
+    const status = req.query.status?.trim() || "";
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.max(1, Number(req.query.limit) || 20);
+    const skip = (page - 1) * limit;
 
-    return res.json(issues);
+    // Build a MongoDB filter object.
+    const filter = {};
+
+    // Search by title or description using a case-insensitive regex.
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Apply additional filters when they are provided.
+    if (category) {
+      filter.category = category;
+    }
+
+    if (status) {
+      filter.status = status;
+    }
+
+    // Keep pagination-ready logic in place even though the UI uses the first page for now.
+    const [issues, total] = await Promise.all([
+      Issue.find(filter)
+        .sort({ votes: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("createdBy", "name email"),
+      Issue.countDocuments(filter),
+    ]);
+
+    return res.json({ issues, total, page, limit });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

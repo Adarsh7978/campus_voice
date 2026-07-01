@@ -7,21 +7,37 @@ export default function Dashboard() {
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+
+  const loadIssues = async (filters = {}) => {
+    try {
+      setLoading(true);
+      const data = await getIssues(filters);
+      setIssues(data);
+      setError("");
+    } catch {
+      setError("Unable to load issues. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadIssues = async () => {
-      try {
-        const data = await getIssues();
-        setIssues(data);
-      } catch {
-        setError("Unable to load issues. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadIssues();
   }, []);
+
+  const handleSearch = async (event) => {
+    event.preventDefault();
+
+    // Send the current search and filter values to the backend.
+    await loadIssues({
+      search: searchTerm,
+      category: selectedCategory,
+      status: selectedStatus,
+    });
+  };
 
   const handleVote = async (issueId) => {
     try {
@@ -44,6 +60,18 @@ export default function Dashboard() {
   const trendingCount = issues.filter(
     (issue) => (issue.votes ?? issue.voteCount ?? 0) > 10
   ).length;
+
+  const categoryOptions = [
+    "",
+    "Campus Facilities",
+    "Academic",
+    "Housing",
+    "Transport",
+    "Food",
+    "Safety",
+    "Other",
+  ];
+  const statusOptions = ["", "Pending", "In Progress", "Solved"];
 
   return (
     <section className="space-y-6">
@@ -92,6 +120,68 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Search and filter controls */}
+      <form
+        onSubmit={handleSearch}
+        className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5"
+      >
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
+          <div className="flex-1">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              Search issues
+            </label>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by title or description"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+            />
+          </div>
+
+          <div className="w-full lg:w-40">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              Category
+            </label>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+            >
+              {categoryOptions.map((category) => (
+                <option key={category || "all-categories"} value={category}>
+                  {category || "All categories"}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="w-full lg:w-40">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              Status
+            </label>
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+            >
+              {statusOptions.map((status) => (
+                <option key={status || "all-statuses"} value={status}>
+                  {status || "All statuses"}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+          >
+            Search
+          </button>
+        </div>
+      </form>
 
       {/* Issues list */}
       {loading ? (
