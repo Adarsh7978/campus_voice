@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import IssueDetails from "./pages/IssueDetails";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import VerifyOtp from "./pages/VerifyOtp";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/verify-otp" element={<VerifyOtp />} />
             <Route path="/" element={<Dashboard />} />
             <Route path="/create" element={<CreateIssue />} />
             <Route path="/issues/:id" element={<IssueDetails />} />

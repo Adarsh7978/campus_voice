@@ -18,7 +18,7 @@ export default function Register() {
       const data = await register({ name, email, password });
       const msg = data?.message || "Registration successful.";
       setSuccess(msg);
-      setTimeout(() => navigate("/login"), 1400);
+      navigate("/verify-otp", { state: { email } });
     } catch (err) {
       const serverMsg =
         err?.response?.data?.message || err?.response?.data?.error;
@@ -95,7 +95,7 @@ export default function Register() {
           )}
           {success && (
             <p className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-              {success} Redirecting to login...
+              {success}
             </p>
           )}
 

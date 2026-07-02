@@ -53,6 +53,16 @@ export async function register(data) {
   return response.data
 }
 
+export async function verifyOtp(data) {
+  const response = await api.post('/verify-otp', data)
+  return response.data
+}
+
+export async function resendOtp(data) {
+  const response = await api.post('/resend-otp', data)
+  return response.data
+}
+
 export async function getIssues(params = {}) {
   const response = await api.get('/issues', { params })
   const payload = response.data

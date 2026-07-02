@@ -32,6 +32,18 @@ const userSchema = new mongoose.Schema(
       enum: ["student", "admin", "moderator"],
       default: "student",
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    otp: {
+      type: String,
+      default: null,
+    },
+    otpExpiry: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt fields.
