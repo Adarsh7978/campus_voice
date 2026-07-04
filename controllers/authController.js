@@ -26,42 +26,51 @@ export function isOtpExpired(expiryDate) {
   return new Date() > new Date(expiryDate);
 }
 
-// Create an email transporter only when SMTP details are provided.
+// Create an email transporter using Gmail settings from the environment.
 function createTransporter() {
-  const { EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS } = process.env;
+  const { EMAIL_USER, EMAIL_PASS, EMAIL_HOST, EMAIL_PORT } = process.env;
+  const normalizedEmailPass = String(EMAIL_PASS || "").replace(/\s+/g, "");
 
-  if (!EMAIL_HOST || !EMAIL_PORT || !EMAIL_USER || !EMAIL_PASS) {
+  if (!EMAIL_USER || !normalizedEmailPass) {
     return null;
   }
 
   return nodemailer.createTransport({
-    host: EMAIL_HOST,
-    port: Number(EMAIL_PORT),
-    secure: Number(EMAIL_PORT) === 465,
+    host: EMAIL_HOST || "smtp.gmail.com",
+    port: Number(EMAIL_PORT || 587),
+    secure: false,
     auth: {
       user: EMAIL_USER,
-      pass: EMAIL_PASS,
+      pass: normalizedEmailPass,
     },
   });
 }
 
 // Send the OTP to the user's college email.
 async function sendOtpEmail(toEmail, otp) {
-  const transporter = createTransporter();
+  try {
+    const transporter = createTransporter();
 
-  if (!transporter) {
-    console.warn("Email OTP service is not configured. Set EMAIL_HOST, EMAIL_PORT, EMAIL_USER, and EMAIL_PASS to send verification emails.");
-    return { sent: false };
+    if (!transporter) {
+      console.log("Transporter not created");
+      return { sent: false };
+    }
+
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: toEmail,
+      subject: "College Issue Platform - OTP Verification",
+      text: `Your OTP is ${otp}`,
+    });
+
+    console.log("Mail Sent Successfully");
+    console.log(info);
+
+    return { sent: true };
+  } catch (err) {
+    console.error("EMAIL ERROR:", err);
+    throw err;
   }
-
-  await transporter.sendMail({
-    from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-    to: toEmail,
-    subject: "College Issue Platform - OTP Verification",
-    text: `Your 6-digit OTP is ${otp}. It expires in 10 minutes.`,
-  });
-
-  return { sent: true };
 }
 
 // Save a fresh OTP for a user and set the expiry time.
