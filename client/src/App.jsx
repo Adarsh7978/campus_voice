@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Admin from "./pages/Admin";
 import CreateIssue from "./pages/CreateIssue";
 import Dashboard from "./pages/Dashboard";
@@ -19,9 +20,23 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/verify-otp" element={<VerifyOtp />} />
             <Route path="/" element={<Dashboard />} />
-            <Route path="/create" element={<CreateIssue />} />
+            <Route
+              path="/create"
+              element={
+                <ProtectedRoute>
+                  <CreateIssue />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/issues/:id" element={<IssueDetails />} />
-            <Route path="/admin" element={<Admin />} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <Admin />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </main>
       </div>

@@ -55,7 +55,8 @@ async function sendOtpEmail(toEmail, otp) {
       console.log("Transporter not created");
       return { sent: false };
     }
-
+//new line added as 5.7
+console.log("Sending OTP to:", toEmail);
     const info = await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: toEmail,
@@ -139,8 +140,8 @@ export async function register(req, res) {
     await saveOtpForUser(user, otp);
 
     // Try to deliver the OTP using email. If SMTP is not configured, the server will log a warning.
-    await sendOtpEmail(normalizedEmail, otp);
-
+     await sendOtpEmail(normalizedEmail, otp);
+//await sendOtpEmail("hunu.dev@gmail.com", otp);
     // Send back safe user details without the password.
     return res.status(201).json({
       message: "Registration successful. Please verify the OTP sent to your college email.",
