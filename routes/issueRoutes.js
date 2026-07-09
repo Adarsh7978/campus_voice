@@ -21,6 +21,6 @@ router.post("/issues/:id/upvote", auth, upvoteIssue);
 router.patch("/issues/:id/status", auth, admin, updateIssueStatus);
 router.get("/issues", getAllIssues);
 router.get("/issues/:id", getIssueById);
-router.delete("/issues/:id", auth, admin, deleteIssue);
+router.delete("/issues/:id", auth, deleteIssue);
 
 export default router;

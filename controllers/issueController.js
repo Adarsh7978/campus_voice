@@ -125,15 +125,27 @@ export async function getIssueById(req, res) {
   }
 }
 
-// Controller to delete an issue. Admin only.
+// Controller to delete an issue.
+// Only the user who created the issue can delete it for now.
+// Admin deletion will be added later when the requirement expands.
 export async function deleteIssue(req, res) {
   try {
     const issueId = req.params.id;
-    const issue = await Issue.findByIdAndDelete(issueId);
+
+    // Find the issue first so we can verify whether it exists and who owns it.
+    const issue = await Issue.findById(issueId);
 
     if (!issue) {
       return res.status(404).json({ message: "Issue not found" });
     }
+
+    // Only the original creator is allowed to delete the issue at this stage.
+    if (issue.createdBy.toString() !== req.user.id.toString()) {
+      return res.status(403).json({ message: "You can only delete your own issues" });
+    }
+
+    // Remove the issue from MongoDB after ownership has been confirmed.
+    await Issue.findByIdAndDelete(issueId);
 
     return res.json({ message: "Issue deleted successfully" });
   } catch (error) {

@@ -43,6 +43,31 @@ api.interceptors.response.use(
   },
 )
 
+function decodeJwtPayload(token) {
+  try {
+    const payload = token.split('.')[1]
+    if (!payload) return null
+
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const decoded = atob(normalized)
+    return JSON.parse(decoded)
+  } catch {
+    return null
+  }
+}
+
+export function getCurrentUserId() {
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) return null
+
+    const payload = decodeJwtPayload(token)
+    return payload?.id || payload?.userId || null
+  } catch {
+    return null
+  }
+}
+
 export async function login(credentials) {
   const response = await api.post('/login', credentials)
   return response.data
@@ -105,5 +130,11 @@ export async function upvoteIssue(issueId) {
 // Update issue status: PATCH /issues/:id/status
 export async function patchIssueStatus(issueId, status) {
   const response = await api.patch(`/issues/${issueId}/status`, { status })
+  return response.data
+}
+
+// Delete an issue owned by the current user.
+export async function deleteIssue(issueId) {
+  const response = await api.delete(`/issues/${issueId}`)
   return response.data
 }

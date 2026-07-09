@@ -1,4 +1,8 @@
-export default function IssueCard({ issue, onVote }) {
+import { useState } from "react";
+import { getCurrentUserId } from "../services/api";
+
+export default function IssueCard({ issue, onVote, onDelete }) {
+  const [deleting, setDeleting] = useState(false);
   const votes = issue.votes ?? issue.voteCount ?? 0;
 
   const status =
@@ -8,6 +12,27 @@ export default function IssueCard({ issue, onVote }) {
     Trending: "bg-rose-50 text-rose-700 border-rose-200",
     Active: "bg-amber-50 text-amber-700 border-amber-200",
     Fresh: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  };
+
+  const currentUserId = getCurrentUserId();
+  const ownerId =
+    typeof issue?.createdBy === "string"
+      ? issue.createdBy
+      : issue?.createdBy?._id || issue?.createdBy?.id || null;
+  const canDelete = Boolean(currentUserId && ownerId && String(ownerId) === String(currentUserId));
+
+  const handleDelete = async () => {
+    if (!onDelete) return;
+
+    const confirmed = window.confirm("Delete this issue?");
+    if (!confirmed) return;
+
+    try {
+      setDeleting(true);
+      await onDelete(issue.id || issue._id);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -51,20 +76,32 @@ export default function IssueCard({ issue, onVote }) {
             {votes} votes
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => onVote(issue.id || issue._id)}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-        >
-          <svg
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            className="h-4 w-4"
+        <div className="flex items-center gap-2">
+          {canDelete && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={deleting}
+              className="rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {deleting ? "Deleting…" : "Delete"}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => onVote(issue.id || issue._id)}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
           >
-            <path d="M10 3.5a.75.75 0 0 1 .75.75v5.25H16a.75.75 0 0 1 0 1.5h-5.25V16a.75.75 0 0 1-1.5 0v-5.25H4a.75.75 0 0 1 0-1.5h5.25V4.25A.75.75 0 0 1 10 3.5Z" />
-          </svg>
-          Vote
-        </button>
+            <svg
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="h-4 w-4"
+            >
+              <path d="M10 3.5a.75.75 0 0 1 .75.75v5.25H16a.75.75 0 0 1 0 1.5h-5.25V16a.75.75 0 0 1-1.5 0v-5.25H4a.75.75 0 0 1 0-1.5h5.25V4.25A.75.75 0 0 1 10 3.5Z" />
+            </svg>
+            Vote
+          </button>
+        </div>
       </div>
     </article>
   );

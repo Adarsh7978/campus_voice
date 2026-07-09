@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getIssues, upvoteIssue } from "../services/api";
+import { deleteIssue, getIssues, upvoteIssue } from "../services/api";
 import IssueCard from "../components/IssueCard";
 
 export default function Dashboard() {
@@ -49,6 +49,19 @@ export default function Dashboard() {
       );
     } catch {
       setError("Unable to submit your vote right now.");
+    }
+  };
+
+  const handleDelete = async (issueId) => {
+    try {
+      await deleteIssue(issueId);
+      setIssues((current) =>
+        current.filter((issue) => !(issue.id === issueId || issue._id === issueId))
+      );
+      setError("");
+    } catch (err) {
+      const serverMsg = err?.response?.data?.message || "Unable to delete this issue right now.";
+      setError(serverMsg);
     }
   };
 
@@ -213,6 +226,7 @@ export default function Dashboard() {
                   key={issue.id || issue._id}
                   issue={issue}
                   onVote={handleVote}
+                  onDelete={handleDelete}
                 />
               ))}
             </div>
