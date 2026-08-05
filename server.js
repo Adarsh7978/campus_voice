@@ -11,9 +11,18 @@ dotenv.config();
 const app = express();
 
 // Enable CORS for the Vite dev server or specific client origin
+// app.use(
+//   cors({
+//     origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
+//   }),
+// );
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://campus-voice-fmpx75166-adarsh7978s-projects.vercel.app",
+    ],
+    credentials: true,
   }),
 );
 
