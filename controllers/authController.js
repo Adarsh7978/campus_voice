@@ -52,20 +52,15 @@ async function sendOtpEmail(toEmail, otp) {
     const transporter = createTransporter();
 
     if (!transporter) {
-      console.log("Transporter not created");
       return { sent: false };
     }
-//new line added as 5.7
-console.log("Sending OTP to:", toEmail);
+
     const info = await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: toEmail,
       subject: "College Issue Platform - OTP Verification",
       text: `Your OTP is ${otp}`,
     });
-
-    console.log("Mail Sent Successfully");
-    console.log(info);
 
     return { sent: true };
   } catch (err) {
@@ -140,8 +135,7 @@ export async function register(req, res) {
     await saveOtpForUser(user, otp);
 
     // Try to deliver the OTP using email. If SMTP is not configured, the server will log a warning.
-     await sendOtpEmail(normalizedEmail, otp);
-//await sendOtpEmail("hunu.dev@gmail.com", otp);
+    await sendOtpEmail(normalizedEmail, otp);
     // Send back safe user details without the password.
     return res.status(201).json({
       message: "Registration successful. Please verify the OTP sent to your college email.",

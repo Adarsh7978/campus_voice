@@ -52,7 +52,10 @@ export async function createIssue(req, res) {
 
     return res.status(201).json(issue);
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      message: error.message,
+      stack: error.stack,
+    });
   }
 }
 

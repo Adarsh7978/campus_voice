@@ -4,10 +4,12 @@
 // Cloudinary is a cloud-based image and video management service.
 // We use it to store uploaded issue images and get back a URL to save in MongoDB.
 
+import dotenv from "dotenv";
 import { v2 as cloudinary } from "cloudinary";
 
-// Configure Cloudinary with your account credentials.
-// Get these values from your Cloudinary dashboard (https://cloudinary.com/console).
+// Ensure environment variables are loaded before Cloudinary is configured.
+dotenv.config();
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
