@@ -20,7 +20,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://campus-voice-fmpx75166-adarsh7978s-projects.vercel.app",
+      "https://campus-voice-eosin.vercel.app",
     ],
     credentials: true,
   }),
