@@ -16,13 +16,42 @@ const app = express();
 //     origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
 //   }),
 // );
+// Build an allowlist from env and a few safe defaults. Also accept any
+// `*.vercel.app` origin so Vercel preview/production deployments work
+// without requiring a code change for each new preview URL.
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://campus-voice-eosin.vercel.app",
+  "https://campus-voice-n4poi0hcy-adarsh7978s-projects.vercel.app",
+];
+
+// Allow additional origins via comma-separated CLIENT_ORIGIN env var.
+if (process.env.CLIENT_ORIGIN) {
+  process.env.CLIENT_ORIGIN.split(",").forEach((o) => {
+    const origin = String(o || "").trim();
+    if (origin && !allowedOrigins.includes(origin)) allowedOrigins.push(origin);
+  });
+}
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://campus-voice-eosin.vercel.app",
-      "https://campus-voice-n4poi0hcy-adarsh7978s-projects.vercel.app",
-    ],
+    origin: (origin, callback) => {
+      // If no origin (server-to-server or tools like curl), allow it.
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+
+      // Allow any vercel.app subdomain (preview deployments). This keeps
+      // CORS flexible for Vercel while still rejecting unknown third-party sites.
+      try {
+        const hostname = new URL(origin).hostname || "";
+        if (hostname.endsWith(".vercel.app")) return callback(null, true);
+      } catch (e) {
+        // fall through to rejection
+      }
+
+      return callback(new Error("Not allowed by CORS"), false);
+    },
     credentials: true,
   }),
 );
