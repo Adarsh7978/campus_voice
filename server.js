@@ -21,6 +21,7 @@ app.use(
     origin: [
       "http://localhost:5173",
       "https://campus-voice-eosin.vercel.app",
+      "https://campus-voice-n4poi0hcy-adarsh7978s-projects.vercel.app",
     ],
     credentials: true,
   }),
