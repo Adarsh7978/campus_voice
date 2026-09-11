@@ -1,7 +1,22 @@
 import axios from 'axios'
 
+const getBaseUrl = () => {
+  // Local development: use the Express API running on your machine.
+  if (import.meta.env.DEV) {
+    return 'http://localhost:5001'
+  }
+
+  // Production: prefer an explicit backend URL when available.
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL.replace(/\/$/, '')
+  }
+
+  // Same-project deployment on Vercel: route API requests through /api.
+  return `${window.location.origin}/api`
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "https://campus-voice-backend-74n3.onrender.com",
+  baseURL: getBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },

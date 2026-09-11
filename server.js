@@ -10,22 +10,13 @@ dotenv.config();
 
 const app = express();
 
-// Enable CORS for the Vite dev server or specific client origin
-// app.use(
-//   cors({
-//     origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
-//   }),
-// );
-// Build an allowlist from env and a few safe defaults. Also accept any
-// `*.vercel.app` origin so Vercel preview/production deployments work
-// without requiring a code change for each new preview URL.
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:3000",
   "https://campus-voice-eosin.vercel.app",
   "https://campus-voice-n4poi0hcy-adarsh7978s-projects.vercel.app",
 ];
 
-// Allow additional origins via comma-separated CLIENT_ORIGIN env var.
 if (process.env.CLIENT_ORIGIN) {
   process.env.CLIENT_ORIGIN.split(",").forEach((o) => {
     const origin = String(o || "").trim();
@@ -33,36 +24,42 @@ if (process.env.CLIENT_ORIGIN) {
   });
 }
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // If no origin (server-to-server or tools like curl), allow it.
-      if (!origin) return callback(null, true);
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
 
-      // Allow any vercel.app subdomain (preview deployments). This keeps
-      // CORS flexible for Vercel while still rejecting unknown third-party sites.
-      try {
-        const hostname = new URL(origin).hostname || "";
-        if (hostname.endsWith(".vercel.app")) return callback(null, true);
-      } catch (e) {
-        // fall through to rejection
+    try {
+      const hostname = new URL(origin).hostname || "";
+      if (hostname === "localhost" || hostname === "127.0.0.1") {
+        return callback(null, true);
       }
+      if (hostname.endsWith(".vercel.app")) {
+        return callback(null, true);
+      }
+    } catch (e) {
+      // fall through to rejection
+    }
 
-      return callback(new Error("Not allowed by CORS"), false);
-    },
-    credentials: true,
-  }),
-);
+    return callback(new Error("Not allowed by CORS"), false);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 app.use(express.json());
 
 connectDB();
 
-// Mount route modules once.
-app.use("/", authRoutes);
-app.use("/", issueRoutes);
+// Mount route modules once with the /api prefix so requests from the Vercel
+// frontend land on the correct Express handlers.
+app.use("/api", authRoutes);
+app.use("/api", issueRoutes);
 
 app.get("/", (req, res) => {
   res.send("College Issue Platform API Running");
@@ -90,6 +87,11 @@ app.use((err, _req, res, _next) => {
 });
 
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+export default app;
